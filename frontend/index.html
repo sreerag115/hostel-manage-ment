@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HostelHub - Hostel Management System</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;font-family:'Segoe UI',Arial,sans-serif;background:#f1f5f9;color:#1e293b}
+
+/* ── LOGIN FULL PAGE ── */
+#loginScreen{
+  position:fixed;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 50%,#3730a3 100%);
+  padding:20px;
+  z-index:9999;
+}
+.login-card{
+  background:#fff;border-radius:20px;padding:40px 36px;
+  width:100%;max-width:420px;
+  box-shadow:0 25px 60px rgba(0,0,0,.35);
+  animation:fadeIn .4s ease;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-logo .icon{font-size:52px;display:block;margin-bottom:10px}
+.login-logo h1{font-size:28px;font-weight:800;color:#1e3a8a;letter-spacing:-.5px}
+.login-logo p{color:#64748b;font-size:14px;margin-top:4px}
+.tabs{display:flex;gap:4px;background:#f1f5f9;padding:4px;border-radius:12px;margin-bottom:22px}
+.tab{flex:1;padding:10px 6px;border:none;background:transparent;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;color:#64748b;transition:.2s}
+.tab.active{background:#fff;color:#2563eb;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:#374151}
+.fg input,.fg select,.fg textarea{
+  width:100%;padding:12px 14px;
+  border:2px solid #e2e8f0;border-radius:10px;
+  font-size:14px;font-family:inherit;outline:none;transition:.2s;
+  background:#fafafa;
+}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:#2563eb;background:#fff}
+.fg textarea{resize:vertical;min-height:85px}
+.btn{padding:11px 18px;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:all .2s}
+.btn:active{transform:scale(.97)}
+.btn-blue{background:#2563eb;color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.3)}
+.btn-blue:hover{background:#1d4ed8}
+.btn-green{background:#16a34a;color:#fff}.btn-green:hover{background:#15803d}
+.btn-red{background:#dc2626;color:#fff}.btn-red:hover{background:#b91c1c}
+.btn-gray{background:#f8fafc;color:#374151;border:2px solid #e2e8f0}
+.btn-gray:hover{background:#f1f5f9}
+.btn-orange{background:#d97706;color:#fff}
+.btn-teal{background:#0891b2;color:#fff}
+.btn-fw{width:100%}
+.err{background:#fef2f2;color:#dc2626;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:14px;border:1px solid #fecaca}
+.sep{text-align:center;color:#cbd5e1;font-size:13px;margin:14px 0;display:flex;align-items:center;gap:10px}
+.sep::before,.sep::after{content:'';flex:1;height:1px;background:#e2e8f0}
+.hint{margin-top:18px;background:#eff6ff;color:#1d4ed8;padding:14px;border-radius:10px;font-size:12px;text-align:center;line-height:2;border:1px solid #bfdbfe}
+
+/* ── APP LAYOUT ── */
+#app{display:none;min-height:100vh}
+.sidebar{
+  position:fixed;top:0;left:0;width:250px;height:100vh;
+  background:linear-gradient(180deg,#0f172a 0%,#1e293b 100%);
+  display:flex;flex-direction:column;z-index:100;
+  box-shadow:4px 0 20px rgba(0,0,0,.2);
+  transition:transform .3s ease;
+}
+.sb-head{
+  padding:18px 16px;border-bottom:1px solid rgba(255,255,255,.07);
+  display:flex;align-items:center;gap:10px;color:#fff;font-size:18px;font-weight:800;letter-spacing:-.3px;
+}
+.sb-user{
+  padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.07);
+  display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.04);
+}
+.avatar{
+  width:40px;height:40px;background:linear-gradient(135deg,#3b82f6,#2563eb);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:800;font-size:16px;flex-shrink:0;
+  box-shadow:0 2px 8px rgba(37,99,235,.4);
+}
+.uname{color:#f1f5f9;font-size:13px;font-weight:700}
+.urole{color:#94a3b8;font-size:11px;margin-top:1px}
+.sb-nav{flex:1;overflow-y:auto;padding:10px 8px}
+.nav-item{
+  display:flex;align-items:center;gap:11px;padding:10px 12px;
+  cursor:pointer;color:#94a3b8;font-size:14px;font-weight:500;
+  transition:.2s;border-radius:10px;margin-bottom:2px;
+}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#e2e8f0}
+.nav-item.active{background:linear-gradient(90deg,#2563eb,#1d4ed8);color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.35)}
+.sb-logout{
+  padding:14px 20px;border:none;border-top:1px solid rgba(255,255,255,.07);
+  background:none;color:#f87171;font-size:14px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;gap:10px;width:100%;
+  transition:.2s;
+}
+.sb-logout:hover{background:rgba(239,68,68,.1)}
+.main{margin-left:250px;min-height:100vh;display:flex;flex-direction:column}
+.topbar{
+  height:62px;background:#fff;border-bottom:1px solid #e2e8f0;
+  display:flex;align-items:center;padding:0 24px;gap:14px;
+  position:sticky;top:0;z-index:50;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+.topbar-title{font-size:19px;font-weight:800;flex:1;color:#1e293b;letter-spacing:-.3px}
+.clock{font-size:12px;color:#64748b;background:#f8fafc;padding:6px 12px;border-radius:8px;border:1px solid #e2e8f0}
+.page{padding:24px;flex:1}
+
+/* ── CARDS & STATS ── */
+.card{background:#fff;border-radius:14px;padding:20px;border:1px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:18px}
+.card-title{font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;color:#1e293b}
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:14px;margin-bottom:20px}
+.stat{background:#fff;border-radius:14px;padding:18px;border:1px solid #e2e8f0;box-shadow:0 1px 4px rgba(0,0,0,.06);display:flex;align-items:center;gap:14px;transition:.2s}
+.stat:hover{box-shadow:0 4px 12px rgba(0,0,0,.1);transform:translateY(-1px)}
+.stat-ic{width:50px;height:50px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.ic-blue{background:#dbeafe}.ic-green{background:#dcfce7}.ic-yellow{background:#fef3c7}.ic-red{background:#fee2e2}.ic-cyan{background:#cffafe}
+.stat-val{font-size:26px;font-weight:800;line-height:1.2;letter-spacing:-.5px}
+.stat-lbl{font-size:12px;color:#64748b;margin-top:2px;font-weight:500}
+
+/* ── ROOMS ── */
+.rooms-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.room-card{background:#fff;border-radius:14px;padding:18px;border:2px solid #e2e8f0;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.room-card::before{content:'';position:absolute;top:0;left:0;right:0;height:5px}
+.room-card.avail{border-color:#bbf7d0}.room-card.avail::before{background:linear-gradient(90deg,#16a34a,#22c55e)}
+.room-card.part{border-color:#fde68a}.room-card.part::before{background:linear-gradient(90deg,#d97706,#f59e0b)}
+.room-card.full{border-color:#fecaca}.room-card.full::before{background:linear-gradient(90deg,#dc2626,#ef4444)}
+.room-card:hover{transform:translateY(-3px);box-shadow:0 10px 25px rgba(0,0,0,.12)}
+.room-num{font-size:22px;font-weight:900;margin-bottom:2px;letter-spacing:-.5px}
+.room-type{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;font-weight:600}
+.obar{height:7px;background:#f1f5f9;border-radius:4px;overflow:hidden;margin:8px 0}
+.ofill{height:100%;border-radius:4px;transition:width .3s}
+.ofill.g{background:linear-gradient(90deg,#16a34a,#22c55e)}
+.ofill.y{background:linear-gradient(90deg,#d97706,#f59e0b)}
+.ofill.r{background:linear-gradient(90deg,#dc2626,#ef4444)}
+.otext{font-size:12px;font-weight:600;color:#64748b}
+.bdots{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}
+.bdot{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.bdot.occ{background:#dbeafe;color:#1d4ed8}
+.bdot.emp{background:#f0fdf4;color:#16a34a;border:1.5px dashed #86efac}
+.rbadge{display:inline-flex;align-items:center;gap:3px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;margin-top:10px;letter-spacing:.3px}
+.rb-a{background:#dcfce7;color:#15803d}
+.rb-p{background:#fef3c7;color:#b45309}
+.rb-f{background:#fee2e2;color:#b91c1c}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid #e2e8f0}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{background:#f8fafc;padding:12px 14px;text-align:left;font-weight:700;color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid #e2e8f0}
+tbody td{padding:13px 14px;border-bottom:1px solid #f1f5f9;color:#1e293b;vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#f8fafc}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.bg{background:#dcfce7;color:#15803d}
+.br{background:#fee2e2;color:#b91c1c}
+.by{background:#fef3c7;color:#b45309}
+.bb{background:#dbeafe;color:#1d4ed8}
+.bgr{background:#f1f5f9;color:#475569}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(2px)}
+.modal{background:#fff;border-radius:18px;padding:26px;width:100%;max-width:490px;max-height:90vh;overflow-y:auto;box-shadow:0 25px 60px rgba(0,0,0,.25);animation:up .25s ease}
+.modal-lg{max-width:650px}
+@keyframes up{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.mh h3{font-size:18px;font-weight:800}
+.mclose{background:#f1f5f9;border:none;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:#64748b}
+.mclose:hover{background:#e2e8f0}
+.mfoot{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;padding-top:16px;border-top:1px solid #e2e8f0}
+
+/* ── SEARCH ── */
+.sbar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.sinp{flex:1;min-width:180px;padding:10px 14px 10px 36px;border:2px solid #e2e8f0;border-radius:10px;font-size:13px;outline:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'/%3E%3C/svg%3E") no-repeat 10px center/16px}
+.sinp:focus{border-color:#2563eb}
+.sfilter{padding:10px 12px;border:2px solid #e2e8f0;border-radius:10px;font-size:13px;outline:none;background:#fff;color:#1e293b;cursor:pointer}
+.sfilter:focus{border-color:#2563eb}
+
+/* ── COMPLAINT BOX ── */
+.anon-box{background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 60%,#4f46e5 100%);border-radius:16px;padding:28px;color:#fff;text-align:center;margin-bottom:22px;box-shadow:0 8px 24px rgba(37,99,235,.3)}
+.anon-box h3{font-size:20px;font-weight:800;margin-bottom:6px}
+.anon-box p{font-size:13px;opacity:.85;margin-bottom:18px;line-height:1.6}
+.anon-box select,.anon-box textarea{width:100%;padding:11px 14px;border-radius:10px;border:none;font-size:13px;font-family:inherit;margin-bottom:12px;color:#1e293b;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.anon-box textarea{resize:vertical;min-height:90px}
+.anon-btn{background:#fff;color:#1e40af;border:none;padding:12px 28px;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer;transition:.2s;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.anon-btn:hover{background:#f0f9ff;transform:translateY(-1px)}
+
+/* ── PAGE HEADER ── */
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+.ph h2{font-size:22px;font-weight:800;display:flex;align-items:center;gap:10px;letter-spacing:-.3px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.divider{height:1px;background:#f1f5f9;margin:14px 0}
+.muted{color:#94a3b8;font-size:12px;font-weight:500}
+.empty{text-align:center;padding:40px;color:#94a3b8}
+.empty .eic{font-size:44px;margin-bottom:12px}
+.flex{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.toast{position:fixed;bottom:24px;right:24px;background:#1e293b;color:#fff;padding:14px 20px;border-radius:12px;font-size:13px;font-weight:600;z-index:9999;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:up .3s ease;max-width:320px}
+.toast.ok{background:#16a34a}
+.toast.err{background:#dc2626}
+.toast.warn{background:#d97706}
+
+/* ── RESPONSIVE ── */
+@media(max-width:700px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .hmbg{display:flex!important}
+  .g2,.g3{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr 1fr}
+  .page{padding:14px}
+  .rooms-grid{grid-template-columns:1fr 1fr}
+}
+.hmbg{display:none;background:none;border:none;font-size:22px;cursor:pointer;padding:4px;color:#1e293b}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="icon">🏨</span>
+      <h1>HostelHub</h1>
+      <p>Hostel Management System</p>
+    </div>
+    <div class="tabs">
+      <button class="tab active" id="tabAdmin" onclick="switchTab('admin',this)">🛡️ Admin</button>
+      <button class="tab" id="tabStudent" onclick="switchTab('student',this)">🎓 Student</button>
+    </div>
+    <form onsubmit="doLogin(event)">
+      <div class="fg">
+        <label>Username</label>
+        <input type="text" id="uname" placeholder="Enter username" autocomplete="username"/>
+      </div>
+      <div class="fg">
+        <label>Password</label>
+        <input type="password" id="upass" placeholder="Enter password" autocomplete="current-password"/>
+      </div>
+      <div id="lerr" class="err" style="display:none"></div>
+      <button type="submit" class="btn btn-blue btn-fw">🔑 Login</button>
+    </form>
+    <div class="sep">— or —</div>
+    <button class="btn btn-gray btn-fw" onclick="guestLogin()">👁️ View Rooms (No Login Required)</button>
+
+      <div class="hint">
+        <b>Demo Login:</b><br/>
+        Admin: <b>admin</b> / <b>admin123</b><br/>
+        Student: <b>S001</b> / <b>student123</b>
+      </div>
+    </div>
+  </div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-head"><span class="ic">🏨</span><span>HostelHub</span></div>
+    <div class="sb-user">
+      <div class="avatar" id="ava">A</div>
+      <div><div class="uname" id="uLabel">Admin</div><div class="urole" id="rLabel">Warden</div></div>
+    </div>
+    <div class="sb-nav" id="sbNav"></div>
+    <button class="sb-logout" onclick="logout()">🚪 Logout</button>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="hmbg" onclick="toggleSB()">☰</button>
+      <div class="topbar-title" id="ptitle">Dashboard</div>
+      <div class="clock" id="clock"></div>
+    </header>
+    <div class="page" id="pageBody"></div>
+  </div>
+</div>
+
+<script>
+// ─── DB (localStorage) ───────────────────────────────────────
+const DB={
+  g(k){try{return JSON.parse(localStorage.getItem('hms_'+k))||null}catch{return null}},
+  s(k,v){localStorage.setItem('hms_'+k,JSON.stringify(v))}
+};
+
+// ─── SEED ────────────────────────────────────────────────────
+function seed(){
+  if(DB.g('seeded')) return;
+  DB.s('users',[
+    {id:'admin',name:'Admin Warden',role:'admin',password:'admin123',dept:'Administration'},
+    {id:'S001',name:'Arjun Krishnan',role:'student',password:'student123',dept:'Computer Science',phone:'9876543210',roomId:'101'},
+    {id:'S002',name:'Priya Menon',role:'student',password:'student123',dept:'Electronics',phone:'9876500001',roomId:'101'},
+    {id:'S003',name:'Rahul Nair',role:'student',password:'student123',dept:'Mechanical',phone:'9876500002',roomId:'102'},
+    {id:'S004',name:'Anjali Das',role:'student',password:'student123',dept:'Civil',phone:'9876500003',roomId:'103'},
+    {id:'S005',name:'Vikram Singh',role:'student',password:'student123',dept:'Computer Science',phone:'9876500004',roomId:'103'},
+    {id:'S006',name:'Meera Pillai',role:'student',password:'student123',dept:'Electronics',phone:'9876500005',roomId:'201'},
+  ]);
+  DB.s('rooms',[
+    {id:'101',number:'101',type:'Double',capacity:2,floor:'1st',facilities:['AC','Attached Bath']},
+    {id:'102',number:'102',type:'Single',capacity:1,floor:'1st',facilities:['Fan','Common Bath']},
+    {id:'103',number:'103',type:'Triple',capacity:3,floor:'1st',facilities:['Fan','Common Bath']},
+    {id:'104',number:'104',type:'Double',capacity:2,floor:'1st',facilities:['AC','Attached Bath']},
+    {id:'201',number:'201',type:'Single',capacity:1,floor:'2nd',facilities:['Fan','Common Bath']},
+    {id:'202',number:'202',type:'Double',capacity:2,floor:'2nd',facilities:['AC','Attached Bath']},
+    {id:'203',number:'203',type:'Triple',capacity:3,floor:'2nd',facilities:['Fan','Attached Bath']},
+    {id:'204',number:'204',type:'Single',capacity:1,floor:'2nd',facilities:['AC','Attached Bath']},
+    {id:'301',number:'301',type:'Double',capacity:2,floor:'3rd',facilities:['Fan','Common Bath']},
+    {id:'302',number:'302',type:'Triple',capacity:3,floor:'3rd',facilities:['AC','Attached Bath']},
+    {id:'303',number:'303',type:'Double',capacity:2,floor:'3rd',facilities:['Fan','Common Bath']},
+    {id:'304',number:'304',type:'Single',capacity:1,floor:'3rd',facilities:['Fan','Common Bath']},
+  ]);
+  DB.s('fees',[
+    {id:'F001',sid:'S001',amount:8000,date:'2026-09-01',status:'paid',month:'September 2026'},
+    {id:'F002',sid:'S002',amount:8000,date:'2026-09-01',status:'paid',month:'September 2026'},
+    {id:'F003',sid:'S003',amount:5000,date:'2026-09-01',status:'pending',month:'September 2026'},
+    {id:'F004',sid:'S004',amount:6000,date:'2026-09-01',status:'paid',month:'September 2026'},
+    {id:'F005',sid:'S005',amount:6000,date:'2026-09-05',status:'pending',month:'September 2026'},
+    {id:'F006',sid:'S006',amount:5000,date:'2026-09-01',status:'paid',month:'September 2026'},
+    {id:'F007',sid:'S001',amount:8000,date:'2026-10-01',status:'pending',month:'October 2026'},
+  ]);
+  DB.s('complaints',[
+    {id:'C001',cat:'Maintenance',text:'The bathroom tap in room 101 is leaking since last week.',date:'2026-10-01',status:'pending'},
+    {id:'C002',cat:'Food',text:'Mess food quality has degraded. Rice is always undercooked.',date:'2026-10-03',status:'resolved'},
+    {id:'C003',cat:'Security',text:'Outsiders entering the hostel without proper checking.',date:'2026-10-05',status:'in-progress'},
+    {id:'C004',cat:'Electricity',text:'Room 203 has power fluctuation issues affecting studies.',date:'2026-10-06',status:'pending'},
+  ]);
+  DB.s('seeded',true);
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────
+const students=()=>( DB.g('users')||[]).filter(u=>u.role==='student');
+const rooms=()=>DB.g('rooms')||[];
+const inRoom=id=>(DB.g('users')||[]).filter(u=>u.role==='student'&&u.roomId===id);
+const vacancy=r=>r.capacity-inRoom(r.id).length;
+const rStatus=r=>{const v=vacancy(r);return v===0?'full':v===r.capacity?'avail':'part'};
+const rupee=n=>'₹'+Number(n).toLocaleString('en-IN');
+const fmtDate=d=>{if(!d)return'—';const dt=new Date(d);return dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})};
+const nextId=(p,list)=>{const ns=list.map(i=>parseInt(i.id.replace(p,''))||0);return p+String((ns.length?Math.max(...ns):0)+1).padStart(3,'0')};
+
+function toast(msg,type='ok'){
+  const t=document.createElement('div');
+  t.className='toast '+type;
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),3000);
+}
+
+// ─── AUTH ─────────────────────────────────────────────────────
+let CU=null; // current user
+let activeTab='admin';
+
+function switchTab(role,el){
+  activeTab=role;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function doLogin(e){
+  e.preventDefault();
+  const u=document.getElementById('uname').value.trim();
+  const p=document.getElementById('upass').value.trim();
+  const err=document.getElementById('lerr');
+  err.style.display='none';
+  if(!u||!p){err.style.display='block';err.textContent='Please enter username and password.';return}
+  const users=DB.g('users')||[];
+  const user=users.find(x=>x.id===u&&x.password===p);
+  if(!user){err.style.display='block';err.textContent='Wrong username or password. Try admin/admin123 or S001/student123';return}
+  CU=user; launch();
+}
+
+function guestLogin(){
+  CU={id:'guest',name:'Guest Viewer',role:'guest'}; launch();
+}
+
+function logout(){
+  CU=null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('uname').value='';
+  document.getElementById('upass').value='';
+  document.getElementById('lerr').style.display='none';
+}
+
+function launch(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('ava').textContent=CU.name[0].toUpperCase();
+  document.getElementById('uLabel').textContent=CU.name;
+  document.getElementById('rLabel').textContent=CU.role==='admin'?'Warden / Admin':CU.role==='student'?'Student':'Guest Viewer';
+  buildNav();
+  nav(CU.role==='guest'?'rooms':'dashboard');
+}
+
+// ─── NAV ──────────────────────────────────────────────────────
+const NAVS={
+  admin:[
+    {id:'dashboard',label:'📊 Dashboard'},
+    {id:'rooms',label:'🚪 Room Management'},
+    {id:'students',label:'👥 Students'},
+    {id:'allocate',label:'🛏️ Room Allocation'},
+    {id:'fees',label:'💰 Fee Management'},
+    {id:'complaints',label:'📢 Complaints'},
+    {id:'reports',label:'📈 Reports'},
+  ],
+  student:[
+    {id:'dashboard',label:'📊 My Dashboard'},
+    {id:'rooms',label:'🚪 View Rooms'},
+    {id:'myfees',label:'💰 My Fees'},
+    {id:'complaintbox',label:'📢 Complaint Box'},
+  ],
+  guest:[
+    {id:'rooms',label:'🚪 Room Availability'},
+    {id:'complaintbox',label:'📢 Submit Complaint'},
+  ]
+};
+const TITLES={dashboard:'Dashboard',rooms:'Rooms',students:'Students',allocate:'Room Allocation',fees:'Fee Management',complaints:'Complaints',reports:'Reports',myfees:'My Fees',complaintbox:'Complaint Box'};
+
+function buildNav(){
+  const items=NAVS[CU.role]||NAVS.guest;
+  document.getElementById('sbNav').innerHTML=items.map(i=>`<div class="nav-item" id="n_${i.id}" onclick="nav('${i.id}')">${i.label}</div>`).join('');
+}
+
+function nav(page){
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+  const ni=document.getElementById('n_'+page);
+  if(ni) ni.classList.add('active');
+  document.getElementById('ptitle').textContent=TITLES[page]||page;
+  const fn={dashboard:pgDash,rooms:pgRooms,students:pgStudents,allocate:pgAllocate,fees:pgFees,complaints:pgComplaints,reports:pgReports,myfees:pgMyFees,complaintbox:pgComplaintBox};
+  document.getElementById('pageBody').innerHTML=(fn[page]||pgDash)();
+  if(window.innerWidth<=700) document.getElementById('sidebar').classList.remove('open');
+}
+
+function toggleSB(){document.getElementById('sidebar').classList.toggle('open')}
+
+// ─── CLOCK ────────────────────────────────────────────────────
+setInterval(()=>{
+  const now=new Date();
+  const el=document.getElementById('clock');
+  if(el) el.textContent=now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+},1000);
+
+// ═══════════════════════════════════════════════════════════════
+// PAGES
+// ═══════════════════════════════════════════════════════════════
+
+// ─── DASHBOARD ────────────────────────────────────────────────
+function pgDash(){
+  const R=rooms(), S=students(), F=DB.g('fees')||[], C=DB.g('complaints')||[];
+  const totalVac=R.reduce((s,r)=>s+vacancy(r),0);
+  const pendFees=F.filter(f=>f.status==='pending').length;
+  const pendCmp=C.filter(c=>c.status==='pending').length;
+
+  if(CU.role==='student'){
+    const myR=R.find(r=>r.id===CU.roomId);
+    const myF=F.filter(f=>f.sid===CU.id);
+    const pAmt=myF.filter(f=>f.status==='pending').reduce((s,f)=>s+Number(f.amount),0);
+    return `
+    <div class="stats">
+      <div class="stat"><div class="stat-ic ic-blue">🚪</div><div><div class="stat-val">${myR?myR.number:'—'}</div><div class="stat-lbl">My Room</div></div></div>
+      <div class="stat"><div class="stat-ic ic-green">👥</div><div><div class="stat-val">${myR?inRoom(myR.id).length:0}/${myR?myR.capacity:0}</div><div class="stat-lbl">Occupancy</div></div></div>
+      <div class="stat"><div class="stat-ic ic-yellow">💰</div><div><div class="stat-val">${rupee(pAmt)}</div><div class="stat-lbl">Pending Fees</div></div></div>
+      <div class="stat"><div class="stat-ic ic-red">📢</div><div><div class="stat-val">${pendCmp}</div><div class="stat-lbl">Open Complaints</div></div></div>
+    </div>
+    ${myR?`<div class="card"><div class="card-title">🛏️ My Room — Room ${myR.number}</div>
+    <div class="g2">
+      <div><div class="muted">Type</div><b>${myR.type}</b></div>
+      <div><div class="muted">Floor</div><b>${myR.floor} Floor</b></div>
+      <div><div class="muted">Capacity</div><b>${myR.capacity} persons</b></div>
+      <div><div class="muted">Facilities</div><b>${(myR.facilities||[]).join(', ')}</b></div>
+    </div>
+    <div class="divider"></div>
+    <div class="muted" style="margin-bottom:8px">Roommates</div>
+    <div class="flex">${inRoom(myR.id).map(s=>`<span class="badge bb">👤 ${s.name}${s.id===CU.id?' (You)':''}</span>`).join('')}</div>
+    </div>`:''}
+    <div class="card"><div class="card-title">💳 Recent Fee Records</div>
+    <div class="tbl-wrap"><table><thead><tr><th>Month</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead><tbody>
+    ${myF.slice(-5).reverse().map(f=>`<tr><td>${f.month}</td><td>${rupee(f.amount)}</td><td>${fmtDate(f.date)}</td><td><span class="badge ${f.status==='paid'?'bg':'by'}">${f.status}</span></td></tr>`).join('')||'<tr><td colspan="4" style="text-align:center;color:#94a3b8">No records</td></tr>'}
+    </tbody></table></div></div>`;
+  }
+
+  // Admin dashboard
+  return `
+  <div class="stats">
+    <div class="stat"><div class="stat-ic ic-blue">🚪</div><div><div class="stat-val">${R.length}</div><div class="stat-lbl">Total Rooms</div></div></div>
+    <div class="stat"><div class="stat-ic ic-green">✅</div><div><div class="stat-val">${R.filter(r=>rStatus(r)!=='full').length}</div><div class="stat-lbl">Rooms w/ Vacancy</div></div></div>
+    <div class="stat"><div class="stat-ic ic-yellow">🛏️</div><div><div class="stat-val">${totalVac}</div><div class="stat-lbl">Total Vacancies</div></div></div>
+    <div class="stat"><div class="stat-ic ic-cyan">👥</div><div><div class="stat-val">${S.length}</div><div class="stat-lbl">Total Students</div></div></div>
+    <div class="stat"><div class="stat-ic ic-red">💰</div><div><div class="stat-val">${pendFees}</div><div class="stat-lbl">Pending Fee Records</div></div></div>
+    <div class="stat"><div class="stat-ic ic-yellow">📢</div><div><div class="stat-val">${pendCmp}</div><div class="stat-lbl">Open Complaints</div></div></div>
+  </div>
+  <div class="g2">
+    <div class="card"><div class="card-title">📊 Room Status</div>
+      ${[['Available (Empty)',R.filter(r=>rStatus(r)==='avail').length,'ofill g'],['Partially Filled',R.filter(r=>rStatus(r)==='part').length,'ofill y'],['Fully Occupied',R.filter(r=>rStatus(r)==='full').length,'ofill r']].map(([lbl,cnt,cls])=>`
+      <div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px"><span>${lbl}</span><b>${cnt}</b></div>
+        <div class="obar"><div class="${cls}" style="width:${R.length?(cnt/R.length*100).toFixed(0):0}%"></div></div>
+      </div>`).join('')}
+    </div>
+    <div class="card"><div class="card-title">📢 Recent Complaints</div>
+      ${(DB.g('complaints')||[]).slice(-4).reverse().map(c=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #f1f5f9">
+        <span style="font-size:18px">${c.status==='resolved'?'✅':c.status==='in-progress'?'🔧':'🔴'}</span>
+        <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${c.cat}</div>
+        <div class="muted" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.text}</div></div>
+        <span class="badge ${c.status==='resolved'?'bg':c.status==='in-progress'?'by':'br'}">${c.status}</span>
+      </div>`).join('')}
+    </div>
+  </div>
+  <div class="card"><div class="card-title">🚪 Room Overview <button class="btn btn-blue" style="margin-left:auto" onclick="nav('rooms')">View All →</button></div>
+    <div class="rooms-grid">${rooms().slice(0,8).map(roomCard).join('')}</div>
+  </div>`;
+}
+
+// ─── ROOMS ────────────────────────────────────────────────────
+function roomCard(r){
+  const occ=inRoom(r.id).length, st=rStatus(r), pct=occ/r.capacity*100;
+  const fc=pct===0?'g':pct<100?'y':'r';
+  const bc=st==='avail'?'avail':st==='part'?'part':'full';
+  const rb=st==='avail'?'rb-a':st==='part'?'rb-p':'rb-f';
+  const rl=st==='avail'?'Available':st==='part'?'Partial':'Full';
+  return `<div class="room-card ${bc}" onclick="roomDetail('${r.id}')">
+    <div class="room-num">Room ${r.number}</div>
+    <div class="room-type">${r.type} · ${r.floor} Floor</div>
+    <div class="obar"><div class="ofill ${fc}" style="width:${pct}%"></div></div>
+    <div class="otext">${occ}/${r.capacity} occupied</div>
+    <div class="bdots">${Array.from({length:r.capacity},(_,i)=>{const s=inRoom(r.id)[i];return`<div class="bdot ${s?'occ':'emp'}" title="${s?s.name:'Vacant'}">${s?s.name[0]:'+'}</div>`}).join('')}</div>
+    <span class="rbadge ${rb}">${rl}</span>
+    ${vacancy(r)>0?`<span class="rbadge" style="background:#dbeafe;color:#1d4ed8;margin-left:4px">${vacancy(r)} free</span>`:''}
+  </div>`;
+}
+
+function pgRooms(){
+  const isAdmin=CU.role==='admin';
+  return `<div class="ph"><h2>🚪 Rooms</h2>${isAdmin?`<button class="btn btn-blue" onclick="addRoomModal()">+ Add Room</button>`:''}</div>
+  <div class="sbar">
+    <input class="sinp" id="rsrch" placeholder="Search room number..." oninput="filterRooms()"/>
+    <select class="sfilter" id="rfloor" onchange="filterRooms()"><option value="">All Floors</option><option>1st</option><option>2nd</option><option>3rd</option></select>
+    <select class="sfilter" id="rstatus" onchange="filterRooms()"><option value="">All Status</option><option value="avail">Available</option><option value="part">Partial</option><option value="full">Full</option></select>
+    <select class="sfilter" id="rtype" onchange="filterRooms()"><option value="">All Types</option><option>Single</option><option>Double</option><option>Triple</option></select>
+  </div>
+  <div id="rgrid" class="rooms-grid">${rooms().map(roomCard).join('')}</div>`;
+}
+
+function filterRooms(){
+  const q=document.getElementById('rsrch').value.toLowerCase();
+  const fl=document.getElementById('rfloor').value;
+  const st=document.getElementById('rstatus').value;
+  const ty=document.getElementById('rtype').value;
+  const res=rooms().filter(r=>{
+    if(q&&!r.number.toLowerCase().includes(q)) return false;
+    if(fl&&r.floor!==fl) return false;
+    if(st&&rStatus(r)!==st) return false;
+    if(ty&&r.type!==ty) return false;
+    return true;
+  });
+  document.getElementById('rgrid').innerHTML=res.length?res.map(roomCard).join(''):`<div class="empty" style="grid-column:1/-1"><div class="eic">🔍</div><p>No rooms found</p></div>`;
+}
+
+function roomDetail(id){
+  const r=rooms().find(x=>x.id===id); if(!r) return;
+  const oc=inRoom(id), isAdmin=CU.role==='admin';
+  showModal(`Room ${r.number} Details`,`
+    <div class="g2">
+      <div><div class="muted">Room No.</div><b>${r.number}</b></div>
+      <div><div class="muted">Type</div><b>${r.type}</b></div>
+      <div><div class="muted">Floor</div><b>${r.floor} Floor</b></div>
+      <div><div class="muted">Capacity</div><b>${r.capacity} persons</b></div>
+      <div><div class="muted">Occupied</div><b>${oc.length}</b></div>
+      <div><div class="muted">Vacancy</div><b style="color:${vacancy(r)>0?'#16a34a':'#dc2626'}">${vacancy(r)} slot(s)</b></div>
+    </div>
+    <div class="divider"></div>
+    <div class="muted" style="margin-bottom:8px">Facilities</div>
+    <div class="flex" style="margin-bottom:14px">${(r.facilities||[]).map(f=>`<span class="badge bb">✓ ${f}</span>`).join('')}</div>
+    <div class="divider"></div>
+    <div class="muted" style="margin-bottom:10px">Beds (${oc.length}/${r.capacity})</div>
+    ${Array.from({length:r.capacity},(_,i)=>{
+      const s=oc[i];
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:${s?'#dbeafe':'#dcfce7'};border-radius:8px;margin-bottom:8px">
+        <div class="bdot ${s?'occ':'emp'}" style="width:34px;height:34px">${s?s.name[0]:'+'}</div>
+        <div style="flex:1">${s?`<b>${s.name}</b><br/><span class="muted">${s.id} · ${s.dept}</span>`:`<b style="color:#16a34a">Vacant Bed ${i+1}</b>`}</div>
+        ${isAdmin&&s?`<button class="btn btn-red" onclick="vacate('${s.id}')">Vacate</button>`:''}
+      </div>`;
+    }).join('')}
+    ${isAdmin?`<div class="mfoot"><button class="btn btn-gray" onclick="closeM()">Close</button><button class="btn btn-red" onclick="delRoom('${r.id}')">🗑️ Delete Room</button></div>`:`<div class="mfoot"><button class="btn btn-gray" onclick="closeM()">Close</button></div>`}
+  `,'modal-lg');
+}
+
+function addRoomModal(){
+  showModal('+ Add New Room',`
+    <div class="fg"><label>Room Number</label><input id="rn" placeholder="e.g. 305"/></div>
+    <div class="fg"><label>Type</label><select id="rt"><option>Single</option><option>Double</option><option>Triple</option></select></div>
+    <div class="fg"><label>Capacity</label><input id="rc" type="number" value="2" min="1" max="6"/></div>
+    <div class="fg"><label>Floor</label><select id="rf"><option>1st</option><option>2nd</option><option>3rd</option></select></div>
+    <div class="fg"><label>Facilities (comma separated)</label><input id="rfac" placeholder="AC, Attached Bath"/></div>
+    <div class="mfoot"><button class="btn btn-gray" onclick="closeM()">Cancel</button><button class="btn btn-blue" onclick="addRoom()">+ Add Room</button></div>
+  `);
+}
+
+function addRoom(){
+  const num=document.getElementById('rn').value.trim();
+  if(!num){toast('Room number required','err');return}
+  const R=rooms();
+  if(R.find(r=>r.number===num)){toast('Room already exists','err');return}
+  R.push({id:num,number:num,type:document.getElementById('rt').value,capacity:parseInt(document.getElementById('rc').value),floor:document.getElementById('rf').value,facilities:document.getElementById('rfac').value.split(',').map(s=>s.trim()).filter(Boolean)});
+  DB.s('rooms',R); closeM(); toast('Room added! ✅'); nav('rooms');
+}
+
+function delRoom(id){
+  if(!confirm('Delete this room?')) return;
+  DB.s('rooms',rooms().filter(r=>r.id!==id));
+  let us=DB.g('users'); us=us.map(u=>u.roomId===id?{...u,roomId:null}:u); DB.s('users',us);
+  closeM(); toast('Room deleted.'); nav('rooms');
+}
+
+function vacate(sid){
+  if(!confirm('Vacate this student?')) return;
+  let us=DB.g('users'); us=us.map(u=>u.id===sid?{...u,roomId:null}:u); DB.s('users',us);
+  closeM(); toast('Student vacated.'); nav('rooms');
+}
+
+// ─── STUDENTS ─────────────────────────────────────────────────
+function pgStudents(){
+  const S=students();
+  return `<div class="ph"><h2>👥 Students</h2><button class="btn btn-blue" onclick="addStudentModal()">+ Add Student</button></div>
+  <div class="sbar">
+    <input class="sinp" id="ssrch" placeholder="Search name or ID..." oninput="filterStudents()"/>
+    <select class="sfilter" id="sdept" onchange="filterStudents()">
+      <option value="">All Departments</option>
+      ${[...new Set(S.map(s=>s.dept))].map(d=>`<option>${d}</option>`).join('')}
+    </select>
+    <select class="sfilter" id="sroom" onchange="filterStudents()">
+      <option value="">All</option><option value="yes">Has Room</option><option value="no">No Room</option>
+    </select>
+  </div>
+  <div class="card">
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>ID</th><th>Name</th><th>Dept</th><th>Room</th><th>Phone</th><th>Action</th></tr></thead>
+      <tbody id="stbl">${stuRows(S)}</tbody>
+    </table></div>
+  </div>`;
+}
+
+function stuRows(S){
+  const R=rooms();
+  if(!S.length) return `<tr><td colspan="6"><div class="empty"><div class="eic">👥</div><p>No students</p></div></td></tr>`;
+  return S.map(s=>{
+    const r=R.find(x=>x.id===s.roomId);
+    return `<tr><td><span class="badge bgr">${s.id}</span></td><td><b>${s.name}</b></td><td>${s.dept}</td>
+    <td>${r?`<span class="badge bb">Room ${r.number}</span>`:`<span class="badge bgr">Unassigned</span>`}</td>
+    <td>${s.phone||'—'}</td>
+    <td><div class="flex"><button class="btn btn-teal" onclick="editStudentModal('${s.id}')">✏️</button><button class="btn btn-red" onclick="delStudent('${s.id}')">🗑️</button></div></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterStudents(){
+  const q=document.getElementById('ssrch').value.toLowerCase();
+  const d=document.getElementById('sdept').value;
+  const r=document.getElementById('sroom').value;
+  const res=students().filter(s=>{
+    if(q&&!s.name.toLowerCase().includes(q)&&!s.id.toLowerCase().includes(q)) return false;
+    if(d&&s.dept!==d) return false;
+    if(r==='yes'&&!s.roomId) return false;
+    if(r==='no'&&s.roomId) return false;
+    return true;
+  });
+  document.getElementById('stbl').innerHTML=stuRows(res);
+}
+
+function addStudentModal(){
+  const R=rooms().filter(r=>vacancy(r)>0);
+  showModal('+ Add Student',`
+    <div class="fg"><label>Student ID</label><input id="ai" placeholder="e.g. S007"/></div>
+    <div class="fg"><label>Full Name</label><input id="an" placeholder="Full name"/></div>
+    <div class="fg"><label>Department</label><input id="ad" placeholder="e.g. Computer Science"/></div>
+    <div class="fg"><label>Phone</label><input id="ap" placeholder="Phone number"/></div>
+    <div class="fg"><label>Password</label><input type="password" id="aw" value="student123"/></div>
+    <div class="fg"><label>Assign Room</label><select id="ar">
+      <option value="">— Not Assigned —</option>
+      ${R.map(r=>`<option value="${r.id}">Room ${r.number} (${r.type}, ${vacancy(r)} vacancy)</option>`).join('')}
+    </select></div>
+    <div class="mfoot"><button class="btn btn-gray" onclick="closeM()">Cancel</button><button class="btn btn-blue" onclick="addStudent()">Add</button></div>
+  `);
+}
+
+function addStudent(){
+  const id=document.getElementById('ai').value.trim(), name=document.getElementById('an').value.trim();
+  if(!id||!name){toast('ID and Name required','err');return}
+  let us=DB.g('users');
+  if(us.find(u=>u.id===id)){toast('Student ID already exists','err');return}
+  us.push({id,name,role:'student',password:document.getElementById('aw').value,dept:document.getElementById('ad').value.trim(),phone:document.getElementById('ap').value.trim(),roomId:document.getElementById('ar').value||null});
+  DB.s('users',us); closeM(); toast('Student added! ✅'); nav('students');
+}
+
+function editStudentModal(id){
+  const s=(DB.g('users')||[]).find(u=>u.id===id); if(!s) return;
+  const R=rooms();
+  showModal('✏️ Edit Student',`
+    <div class="fg"><label>Full Name</label><input id="en" value="${s.name}"/></div>
+    <div class="fg"><label>Department</label><input id="ed" value="${s.dept||''}"/></div>
+    <div class="fg"><label>Phone</label><input id="ep" value="${s.phone||''}"/></div>
+    <div class="fg"><label>Room</label><select id="er">
+      <option value="">— Not Assigned —</option>
+      ${R.map(r=>`<option value="${r.id}" ${r.id===s.roomId?'selected':''}>Room ${r.number} (${r.type})</option>`).join('')}
+    </select></div>
+    <div class="mfoot"><button class="btn btn-gray" onclick="closeM()">Cancel</button><button class="btn btn-blue" onclick="saveStudent('${id}')">💾 Save</button></div>
+  `);
+}
+
+function saveStudent(id){
+  let us=DB.g('users');
+  us=us.map(u=>u.id===id?{...u,name:document.getElementById('en').value.trim(),dept:document.getElementById('ed').value.trim(),phone:document.getElementById('ep').value.trim(),roomId:document.getElementById('er').value||null}:u);
+  DB.s('users',us); closeM(); toast('Saved! ✅'); nav('students');
+}
+
+function delStudent(id){
+  if(!confirm('Delete this student?')) return;
+  DB.s('users',(DB.g('users')||[]).filter(u=>u.id!==id));
+  toast('Deleted.'); nav('students');
+}
+
+// ─── ALLOCATION ───────────────────────────────────────────────
+function pgAllocate(){
+  const unassigned=students().filter(s=>!s.roomId);
+  const avail=rooms().filter(r=>vacancy(r)>0);
+  return `<div class="ph"><h2>🛏️ Room Allocation</h2></div>
+  <div class="g2">
+    <div class="card"><div class="card-title">⏳ Unassigned Students (${unassigned.length})</div>
+      ${unassigned.length?unassigned.map(s=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:8px">
+          <div class="avatar" style="width:34px;height:34px;font-size:13px">${s.name[0]}</div>
+          <div style="flex:1"><b>${s.name}</b><br/><span class="muted">${s.id} · ${s.dept}</span></div>
+          <button class="btn btn-blue" onclick="allocModal('${s.id}')">🛏️ Assign</button>
+        </div>`).join(''):`<div class="empty"><div class="eic">✅</div><p>All students assigned!</p></div>`}
+    </div>
+    <div class="card"><div class="card-title">🚪 Available Rooms (${avail.length})</div>
+      ${avail.map(r=>`
+        <div style="padding:10px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between"><b>Room ${r.number}</b><span class="badge bb">${vacancy(r)} vacancy</span></div>
+          <div class="muted">${r.type} · ${r.floor} Floor · Cap: ${r.capacity}</div>
+          <div class="obar" style="margin-top:6px"><div class="ofill y" style="width:${(inRoom(r.id).length/r.capacity*100)}%"></div></div>
+        </div>`).join('')||`<div class="empty"><div class="eic">🚫</div><p>No available rooms</p></div>`}
+    </div>
+  </div>`;
+}
+
+function allocModal(sid){
+  const s=(DB.g('users')||[]).find(u=>u.id===sid);
+  const R=rooms().filter(r=>vacancy(r)>0);
+  showModal(`🛏️ Assign Room — ${s.name}`,`
+    <div class="fg"><label>Select Room</label><select id="ar2">
+      ${R.map(r=>`<option value="${r.id}">Room ${r.number} (${r.type}, ${vacancy(r)} vacancy)</option>`).join('')}
+    </select></div>
+    <div class="mfoot"><button class="btn btn-gray" onclick="closeM()">Cancel</button><button class="btn btn-blue" onclick="doAlloc('${sid}')">✅ Assign</button></div>
+  `);
+}
+
+function doAlloc(sid){
+  const roomId=document.getElementById('ar2').value;
+  let us=DB.g('users');
+  us=us.map(u=>u.id===sid?{...u,roomId}:u);
+  DB.s('users',us); closeM(); toast('Room assigned! ✅'); nav('allocate');
+}
+
+// ─── FEES ─────────────────────────────────────────────────────
+function pgFees(){
+  const F=DB.g('fees')||[], S=students();
+  const paid=F.filter(f=>f.status==='paid').reduce((s,f)=>s+Number(f.amount),0);
+  const pend=F.filter(f=>f.status==='pending').reduce((s,f)=>s+Number(f.amount),0);
+  return `<div class="ph"><h2>💰 Fee Management</h2><button class="btn btn-blue" onclick="addFeeModal()">+ Add Record</button></div>
+  <div class="stats"><div class="stat"><div class="stat-ic ic-green">✅</div><div><div class="stat-val">${rupee(paid)}</div><div class="stat-lbl">Collected</div></div></div>
+  <div class="stat"><div class="stat-ic ic-yellow">⏳</div><div><div class="stat-val">${rupee(pend)}</div><div class="stat-lbl">Pending</div></div></div>
+  <div class="stat"><div class="stat-ic ic-blue">📄</div><div><div class="stat-val">${F.length}</div><div class="stat-lbl">Records</div></div></div></div>
+  <div class="card">
+    <div class="sbar">
+      <input class="sinp" id="fsrch" placeholder="Search student..." oninput="filterFees()"/>
+      <select class="sfilter" id="fstat" onchange="filterFees()"><option value="">All</option><option value="paid">Paid</option><option value="pending">Pending</option></select>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>ID</th><th>Student</th><th>Month</th><th>Amount</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="ftbl">${feeRows(F,S)}</tbody>
+    </table></div>
+  </div>`;
+}
+
+function feeRows(F,S){
+  if(!F.length) return `<tr><td colspan="7"><div class="empty"><div class="eic">💰</div><p>No records</p></div></td></tr>`;
+  return F.map(f=>{
+    const s=S.find(u=>u.id===f.sid);
+    return `<tr><td><span class="badge bgr">${f.id}</span></td>
+    <td><b>${s?s.name:f.sid}</b></td><td>${f.month}</td><td><b>${rupee(f.amount)}</b></td><td>${fmtDate(f.date)}</td>
+    <td><span class="badge ${f.status==='paid'?'bg':'by'}">${f.status}</span></td>
+    <td>${f.status==='pending'?`<button class="btn btn-green" onclick="markPaid('${f.id}')">✅ Mark Paid</button>`:'—'}</td></tr>`;
+  }).join('');
+}
+
+function filterFees(){
+  const q=document.getElementById('fsrch').value.toLowerCase();
+  const st=document.getElementById('fstat').value;
+  const S=students();
+  let F=DB.g('fees')||[];
+  F=F.filter(f=>{
+    const s=S.find(u=>u.id===f.sid);
+    if(q&&s&&!s.name.toLowerCase().includes(q)&&!f.sid.toLowerCase().includes(q)) return false;
+    if(st&&f.status!==st) return false;
+    return true;
+  });
+  document.getElementById('ftbl').innerHTML=feeRows(F,S);
+}
+
+function addFeeModal(){
+  const S=students();
+  showModal('+ Add Fee Record',`
+    <div class="fg"><label>Student</label><select id="fs">${S.map(s=>`<option value="${s.id}">${s.name} (${s.id})</option>`).join('')}</select></div>
+    <div class="fg"><label>Month</label><input id="fm" placeholder="e.g. October 2026"/></div>
+    <div class="fg"><label>Amount (₹)</label><input id="fa" type="number" value="5000"/></div>
+    <div class="fg"><label>Date</label><input id="fd" type="date" value="${new Date().toISOString().split('T')[0]}"/></div>
+    <div class="fg"><label>Status</label><select id="fst"><option value="pending">Pending</option><option value="paid">Paid</option></select></div>
+    <div class="mfoot"><button class="btn btn-gray" onclick="closeM()">Cancel</button><button class="btn btn-blue" onclick="saveFee()">💾 Save</button></div>
+  `);
+}
+
+function saveFee(){
+  const F=DB.g('fees')||[];
+  F.push({id:nextId('F',F),sid:document.getElementById('fs').value,month:document.getElementById('fm').value,amount:document.getElementById('fa').value,date:document.getElementById('fd').value,status:document.getElementById('fst').value});
+  DB.s('fees',F); closeM(); toast('Fee record added! ✅'); nav('fees');
+}
+
+function markPaid(id){
+  let F=DB.g('fees')||[];
+  F=F.map(f=>f.id===id?{...f,status:'paid'}:f);
+  DB.s('fees',F); toast('Marked as paid! ✅'); nav('fees');
+}
+
+// ─── MY FEES (Student) ────────────────────────────────────────
+function pgMyFees(){
+  const F=(DB.g('fees')||[]).filter(f=>f.sid===CU.id);
+  const paid=F.filter(f=>f.status==='paid').reduce((s,f)=>s+Number(f.amount),0);
+  const pend=F.filter(f=>f.status==='pending').reduce((s,f)=>s+Number(f.amount),0);
+  return `<div class="ph"><h2>💰 My Fees</h2></div>
+  <div class="stats">
+    <div class="stat"><div class="stat-ic ic-blue">📄</div><div><div class="stat-val">${rupee(paid+pend)}</div><div class="stat-lbl">Total</div></div></div>
+    <div class="stat"><div class="stat-ic ic-green">✅</div><div><div class="stat-val">${rupee(paid)}</div><div class="stat-lbl">Paid</div></div></div>
+    <div class="stat"><div class="stat-ic ic-yellow">⏳</div><div><div class="stat-val">${rupee(pend)}</div><div class="stat-lbl">Pending</div></div></div>
+  </div>
+  <div class="card"><div class="tbl-wrap"><table>
+    <thead><tr><th>Fee ID</th><th>Month</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead>
+    <tbody>${F.length?F.map(f=>`<tr><td><span class="badge bgr">${f.id}</span></td><td>${f.month}</td><td><b>${rupee(f.amount)}</b></td><td>${fmtDate(f.date)}</td>
+    <td><span class="badge ${f.status==='paid'?'bg':'by'}">${f.status}</span></td></tr>`).join(''):`<tr><td colspan="5"><div class="empty"><div class="eic">💰</div><p>No records</p></div></td></tr>`}</tbody>
+  </table></div></div>`;
+}
+
+// ─── COMPLAINTS (Admin) ───────────────────────────────────────
+function pgComplaints(){
+  const C=DB.g('complaints')||[];
+  return `<div class="ph"><h2>📢 Complaints</h2></div>
+  <div class="stats">
+    <div class="stat"><div class="stat-ic ic-blue">📋</div><div><div class="stat-val">${C.length}</div><div class="stat-lbl">Total</div></div></div>
+    <div class="stat"><div class="stat-ic ic-red">🔴</div><div><div class="stat-val">${C.filter(c=>c.status==='pending').length}</div><div class="stat-lbl">Pending</div></div></div>
+    <div class="stat"><div class="stat-ic ic-yellow">🔧</div><div><div class="stat-val">${C.filter(c=>c.status==='in-progress').length}</div><div class="stat-lbl">In Progress</div></div></div>
+    <div class="stat"><div class="stat-ic ic-green">✅</div><div><div class="stat-val">${C.filter(c=>c.status==='resolved').length}</div><div class="stat-lbl">Resolved</div></div></div>
+  </div>
+  <div class="sbar">
+    <select class="sfilter" id="cstat" onchange="filterCmp()"><option value="">All Status</option><option value="pending">Pending</option><option value="in-progress">In Progress</option><option value="resolved">Resolved</option></select>
+    <select class="sfilter" id="ccat" onchange="filterCmp()"><option value="">All Categories</option>${[...new Set(C.map(c=>c.cat))].map(c=>`<option>${c}</option>`).join('')}</select>
+  </div>
+  <div id="cmpList">${cmpCards(C)}</div>`;
+}
+
+function cmpCards(C){
+  if(!C.length) return `<div class="empty"><div class="eic">💬</div><p>No complaints</p></div>`;
+  return [...C].reverse().map(c=>`
+    <div class="card" style="border-left:4px solid ${c.status==='resolved'?'#16a34a':c.status==='in-progress'?'#d97706':'#dc2626'}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px">
+        <div>
+          <div style="font-weight:700;font-size:15px">${c.cat} <span class="muted">· ${c.id}</span></div>
+          <div class="flex" style="margin-top:4px">
+            <span class="badge ${c.status==='resolved'?'bg':c.status==='in-progress'?'by':'br'}">${c.status}</span>
+            <span class="badge bgr">🎭 Anonymous</span>
+            <span class="muted">${fmtDate(c.date)}</span>
+          </div>
+        </div>
+        <div class="flex">
+          ${c.status!=='resolved'?`<button class="btn btn-green" onclick="updCmp('${c.id}','resolved')">✅ Resolve</button>`:''}
+          ${c.status==='pending'?`<button class="btn btn-orange" onclick="updCmp('${c.id}','in-progress')">🔧 In Progress</button>`:''}
+        </div>
+      </div>
+      <p style="font-size:14px;color:#374151;line-height:1.6">${c.text}</p>
+    </div>`).join('');
+}
+
+function filterCmp(){
+  const st=document.getElementById('cstat').value;
+  const cat=document.getElementById('ccat').value;
+  let C=DB.g('complaints')||[];
+  if(st) C=C.filter(c=>c.status===st);
+  if(cat) C=C.filter(c=>c.cat===cat);
+  document.getElementById('cmpList').innerHTML=cmpCards(C);
+}
+
+function updCmp(id,status){
+  let C=DB.g('complaints')||[];
+  C=C.map(c=>c.id===id?{...c,status}:c);
+  DB.s('complaints',C); toast(`Marked as ${status}! ✅`); nav('complaints');
+}
+
+// ─── COMPLAINT BOX (Student/Guest) ────────────────────────────
+function pgComplaintBox(){
+  const C=DB.g('complaints')||[];
+  return `
+  <div class="anon-box">
+    <div style="font-size:40px;margin-bottom:8px">🎭</div>
+    <h3>Anonymous Complaint Box</h3>
+    <p>Your identity is completely protected. Submit safely and anonymously.</p>
+    <select id="cmpCat">
+      <option value="">— Select Category —</option>
+      <option>Maintenance</option><option>Food</option><option>Electricity</option>
+      <option>Security</option><option>Water Supply</option><option>Internet</option>
+      <option>Hygiene</option><option>Noise</option><option>Other</option>
+    </select>
+    <textarea id="cmpTxt" placeholder="Describe your complaint in detail..."></textarea>
+    <button class="anon-btn" onclick="submitCmp()">📤 Submit Anonymously</button>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="stat-ic ic-blue">📋</div><div><div class="stat-val">${C.length}</div><div class="stat-lbl">Total Complaints</div></div></div>
+    <div class="stat"><div class="stat-ic ic-red">🔴</div><div><div class="stat-val">${C.filter(c=>c.status==='pending').length}</div><div class="stat-lbl">Pending</div></div></div>
+    <div class="stat"><div class="stat-ic ic-green">✅</div><div><div class="stat-val">${C.filter(c=>c.status==='resolved').length}</div><div class="stat-lbl">Resolved</div></div></div>
+  </div>
+  <div class="card"><div class="card-title">📋 Complaint Status Board (Public)</div>
+    ${[...C].reverse().map(c=>`
+      <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #f1f5f9;align-items:flex-start">
+        <span style="font-size:20px">${c.status==='resolved'?'✅':c.status==='in-progress'?'🔧':'🔴'}</span>
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:14px">${c.cat} <span class="badge ${c.status==='resolved'?'bg':c.status==='in-progress'?'by':'br'}" style="font-size:10px">${c.status}</span></div>
+          <div class="muted" style="margin-top:2px">${c.text}</div>
+          <div class="muted" style="margin-top:2px">${fmtDate(c.date)}</div>
+        </div>
+      </div>`).join('')||`<div class="empty"><div class="eic">💬</div><p>No complaints yet</p></div>`}
+  </div>`;
+}
+
+function submitCmp(){
+  const cat=document.getElementById('cmpCat').value;
+  const txt=document.getElementById('cmpTxt').value.trim();
+  if(!cat){toast('Please select a category','warn');return}
+  if(txt.length<10){toast('Please describe the complaint (min 10 characters)','warn');return}
+  let C=DB.g('complaints')||[];
+  C.push({id:nextId('C',C),cat,text:txt,date:new Date().toISOString().split('T')[0],status:'pending'});
+  DB.s('complaints',C);
+  document.getElementById('cmpCat').value='';
+  document.getElementById('cmpTxt').value='';
+  toast('Complaint submitted anonymously! ✅'); nav('complaintbox');
+}
+
+// ─── REPORTS ─────────────────────────────────────────────────
+function pgReports(){
+  const R=rooms(), S=students(), F=DB.g('fees')||[];
+  const totalCap=R.reduce((s,r)=>s+r.capacity,0);
+  const occ=S.filter(s=>s.roomId).length;
+  const rate=totalCap?Math.round(occ/totalCap*100):0;
+  return `<div class="ph"><h2>📈 Reports & Analytics</h2></div>
+  <div class="stats">
+    <div class="stat"><div class="stat-ic ic-blue">📊</div><div><div class="stat-val">${rate}%</div><div class="stat-lbl">Occupancy Rate</div></div></div>
+    <div class="stat"><div class="stat-ic ic-green">✅</div><div><div class="stat-val">${rupee(F.filter(f=>f.status==='paid').reduce((s,f)=>s+Number(f.amount),0))}</div><div class="stat-lbl">Revenue Collected</div></div></div>
+    <div class="stat"><div class="stat-ic ic-yellow">⏳</div><div><div class="stat-val">${rupee(F.filter(f=>f.status==='pending').reduce((s,f)=>s+Number(f.amount),0))}</div><div class="stat-lbl">Revenue Pending</div></div></div>
+  </div>
+  <div class="g2">
+    <div class="card"><div class="card-title">🏠 Room Types</div>
+      ${['Single','Double','Triple'].map(t=>{const cnt=R.filter(r=>r.type===t).length;const pct=R.length?(cnt/R.length*100).toFixed(0):0;return`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>${t} Rooms</span><b>${cnt}</b></div><div class="obar"><div class="ofill g" style="width:${pct}%;background:#2563eb"></div></div></div>`}).join('')}
+    </div>
+    <div class="card"><div class="card-title">🎓 Departments</div>
+      ${[...new Set(S.map(s=>s.dept))].map(d=>{const cnt=S.filter(s=>s.dept===d).length;const pct=S.length?(cnt/S.length*100).toFixed(0):0;return`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>${d}</span><b>${cnt}</b></div><div class="obar"><div class="ofill g" style="width:${pct}%;background:#2563eb"></div></div></div>`}).join('')}
+    </div>
+  </div>
+  <div class="card"><div class="card-title">🏢 Floor Summary</div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Floor</th><th>Total</th><th>Available</th><th>Partial</th><th>Full</th><th>Students</th></tr></thead>
+      <tbody>${['1st','2nd','3rd'].map(fl=>{const fr=R.filter(r=>r.floor===fl);return`<tr><td><b>${fl} Floor</b></td><td>${fr.length}</td><td><span class="badge bg">${fr.filter(r=>rStatus(r)==='avail').length}</span></td><td><span class="badge by">${fr.filter(r=>rStatus(r)==='part').length}</span></td><td><span class="badge br">${fr.filter(r=>rStatus(r)==='full').length}</span></td><td>${fr.reduce((s,r)=>s+inRoom(r.id).length,0)}</td></tr>`}).join('')}</tbody>
+    </table></div>
+  </div>`;
+}
+
+// ─── MODAL ────────────────────────────────────────────────────
+function showModal(title,body,extra=''){
+  const d=document.createElement('div');
+  d.className='overlay';
+  d.id='mOverlay';
+  d.innerHTML=`<div class="modal ${extra}"><div class="mh"><h3>${title}</h3><button class="mclose" onclick="closeM()">✕</button></div>${body}</div>`;
+  d.addEventListener('click',e=>{if(e.target===d) closeM()});
+  document.body.appendChild(d);
+}
+function closeM(){const o=document.getElementById('mOverlay');if(o)o.remove()}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeM()});
+
+// ─── INIT ────────────────────────────────────────────────────
+seed();
+</script>
+</body>
+</html>
